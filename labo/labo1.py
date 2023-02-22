@@ -114,5 +114,39 @@ den = np.poly([p0, p1])
 
 sin = [np.sin(np.pi * n / 16) + np.sin(np.pi * n / 32) for n in range(N)]
 y   = signal.lfilter(num, den, sin)
-plt.plot(y)
+#plt.plot(y)
+#plt.show()
+
+
+
+# -----------------------------------------------------------------------------
+fe = 48000
+bande_passante = 2500
+bande_coupe = 3500
+
+
+
+
+# -----------------------------------------------------------------------------
+plt.gray()
+img_couleur = mpimg.imread('goldhill.png')
+
+plt.imshow(img_couleur)
+#plt.show()
+
+x_s, y_s = img_couleur.shape
+T = [[2,  0 ],                                                                 \
+     [0, 1/2]]
+
+img_t = [[None] * (y_s // 2 + 1)] * (x_s * 2)
+
+for c1 in range(x_s):
+    row = []
+    for l1 in range(y_s):
+        l2 = y_s - 1 - l1
+        xt = 2 * c1
+        yt = 1/2 * l2
+        img_t[round(xt)][round(yt)] = img_couleur[c1, l1]
+
+plt.imshow(img_t)
 plt.show()
