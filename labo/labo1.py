@@ -78,16 +78,16 @@ def zplane(b, a, filename=None):
 num = np.poly([0.8j, -0.8j])
 den = np.poly([0.95 * np.exp(1j * np.pi/8),  0.95 * np.exp(-1j * np.pi/8)])
 
-zp = zplane(num, den)
+#zp = zplane(num, den)
 
 w, H = signal.freqz(num, den)
 angles = np.unwrap(np.angle(H))
 
-fig, ax1 = plt.subplots()
-ax1.plot(w, 20*np.log10(np.abs(H)))
-ax2 = ax1.twinx()
-ax2.plot(w, angles, "g-")
-plt.show()
+#fig, ax1 = plt.subplots()
+#ax1.plot(w, 20*np.log10(np.abs(H)))
+#ax2 = ax1.twinx()
+#ax2.plot(w, angles, "g-")
+#plt.show()
 
 
 N = 200
@@ -95,11 +95,24 @@ impulse = [0 if n != 0 else 1 for n in range(-N, N)]
 filtre = signal.lfilter(num, den, impulse)
 z = signal.lfilter(den, num, filtre)
 
-plt.plot(filtre)
-plt.show()
-plt.plot(z)
-plt.show()
+#plt.plot(filtre)
+#plt.show()
+#plt.plot(z)
+#plt.show()
 
 
 
 # -----------------------------------------------------------------------------
+z0 = np.exp(1j * np.pi/16)
+z1 = z0
+p0 = 0.99 * np.exp(1j * np.pi/16)
+p1 = p0
+
+num = np.poly([z0, z1])
+den = np.poly([p0, p1])
+# zp = zplane(num, den)
+
+sin = [np.sin(np.pi * n / 16) + np.sin(np.pi * n / 32) for n in range(N)]
+y   = signal.lfilter(num, den, sin)
+plt.plot(y)
+plt.show()
