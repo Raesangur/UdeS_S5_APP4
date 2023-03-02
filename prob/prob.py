@@ -8,7 +8,12 @@ from scipy import signal
 
 def main():
     image = np.load("goldhill_aberrations.npy")
-    plt.imshow(image)
+
+    num = np.poly([0, -0.99, -0.99, 0.8])
+    den = np.poly([0.95 * np.exp(1j * np.pi/8),  0.95 * np.exp(-1j * np.pi/8), 0.9 * np.exp(1j * np.pi/2),  0.9 * np.exp(-1j * np.pi/2)])
+
+    image_filtree = signal.lfilter(num, den, image)
+    plt.imshow(image_filtree, cmap='gray')
     plt.show()
 
 
