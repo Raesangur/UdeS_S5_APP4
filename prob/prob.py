@@ -23,14 +23,37 @@ def rotation(image):
         for row in range(y):
             newImage[row][y - col - 1] = image[col][row]
 
-    plt.imshow(newImage)
-    plt.show()
+    return newImage
 
+def bilinear(image):
+    f  = 500
+    fe = 1600
+    wd = 2 * np.pi * f / fe
+    wa = 2 * fe * np.tan(wd / 2)
+
+    alpha = 2 * fe / wa     # 2 / T / wc
+
+    a = alpha ** 2 + alpha * np.sqrt(2) + 1
+    b = -2 * alpha ** 2 + 2
+    c = alpha ** 2 - alpha * np.sqrt(2) + 1
+
+    num = [1, 2, 1]
+    den = [a, b, c]
+
+    image_filtree = signal.lfilter(num, den, image)
+    return image_filtree
 
 def main():
     plt.gray()
-    image = mpimg.imread("goldhill_rotate.png", 0)
-    rotation(image)
+    #image = mpimg.imread("goldhill_rotate.png", 0)
+    image = np.load("goldhill_bruit.npy")
+    #bilinear(image)
+    new = bilinear(image)
+    
+    plt.imshow(new)
+    plt.show()
+
+
 
 
 
