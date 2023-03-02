@@ -6,16 +6,31 @@ from matplotlib import rcParams
 import numpy as np
 from scipy import signal
 
-def main():
-    image = np.load("goldhill_aberrations.npy")
 
+def aberrations(image):
     num = np.poly([0, -0.99, -0.99, 0.8])
     den = np.poly([0.95 * np.exp(1j * np.pi/8),  0.95 * np.exp(-1j * np.pi/8), 0.9 * np.exp(1j * np.pi/2),  0.9 * np.exp(-1j * np.pi/2)])
 
     image_filtree = signal.lfilter(num, den, image)
-    plt.imshow(image_filtree, cmap='gray')
+    return image_filtree
+
+def rotation(image):
+    image = np.mean(image, -1)
+    x, y  = image.shape
+
+    newImage = np.zeros((x, y))
+    for col in range(x):
+        for row in range(y):
+            newImage[row][y - col - 1] = image[col][row]
+
+    plt.imshow(newImage)
     plt.show()
 
+
+def main():
+    plt.gray()
+    image = mpimg.imread("goldhill_rotate.png", 0)
+    rotation(image)
 
 
 
