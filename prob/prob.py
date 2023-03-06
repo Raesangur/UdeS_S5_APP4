@@ -25,6 +25,31 @@ def rotation(image):
 
     return newImage
 
+def rotation_base(image):
+    #image = np.mean(image, -1)
+    x, y  = image.shape
+
+    newImage = np.zeros((x, y))
+    for e1 in range(x):
+        for e2 in range(y):
+            u1 =  e2
+            u2 = -e1
+            newImage[u1][u2] = image[e1][e2]
+
+    return newImage
+
+def elliptic_filter(image):
+    fe = 1600
+    fc = 500
+    filterOrder = 4
+    rippleMax   = 0.2
+    threshold   = 60
+
+    hz_ellip = signal.ellip(filterOrder, rippleMax, threshold, 2 * fc/fe)
+
+    return signal.lfilter(hz_ellip[0], hz_ellip[1], image)
+
+
 def bilinear(image):
     f  = 500
     fe = 1600
@@ -43,15 +68,33 @@ def bilinear(image):
     image_filtree = signal.lfilter(num, den, image)
     return image_filtree
 
+def compress(image, factor=0.5):
+    covariance = np.cov(image)
+    eigenvalues, eigenvector = np.linalg.eig(covariance)
+    transferMatrix    = np.transpose(eigenvector)
+    transferMatrixInv = np.linalg.inv(transferMatrix)
+
+    Iv = transferMatrix.dot(image)
+    size = len(Iv)
+    Iv = [Iv[n] if n < size * factor else np.zeros(size) for n in range(size)]
+    Io = transferMatrixInv.dot(Iv)
+
+    return Io
+
+def show(image):
+    plt.imshow(image)
+    plt.show()
+    return image
+
 def main():
     plt.gray()
-    #image = mpimg.imread("goldhill_rotate.png", 0)
-    image = np.load("goldhill_bruit.npy")
-    #bilinear(image)
-    new = bilinear(image)
+    image = show(np.load("image_complete.npy"))
+    image = show(aberrations(image))
+    image = show(rotation_base(image))
+    image = show(elliptic_filter(image))
+    image = show(compress(image))
     
-    plt.imshow(new)
-    plt.show()
+    
 
 
 
