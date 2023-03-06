@@ -8,9 +8,14 @@ from scipy import signal
 
 
 def aberrations(image):
+    # Getting transfer function by reversing the given function
     num = np.poly([0, -0.99, -0.99, 0.8])
     den = np.poly([0.95 * np.exp(1j * np.pi/8),  0.95 * np.exp(-1j * np.pi/8), 0.9 * np.exp(1j * np.pi/2),  0.9 * np.exp(-1j * np.pi/2)])
 
+    # Displaying poles and zeros
+    zplane(num, den, title="Poles et zeros du filtre d'aberrations")
+
+    # Applying filter
     image_filtree = signal.lfilter(num, den, image)
     return image_filtree
 
@@ -45,9 +50,23 @@ def elliptic_filter(image):
     rippleMax   = 0.2
     threshold   = 60
 
-    hz_ellip = signal.ellip(filterOrder, rippleMax, threshold, 2 * fc/fe)
+    num, den = signal.ellip(filterOrder, rippleMax, threshold, 2 * fc/fe)
 
-    return signal.lfilter(hz_ellip[0], hz_ellip[1], image)
+    # Displaying poles and zeros, as well as module of frequency response
+    zplane(num, den, title="Poles et zeros du filtre elliptique")
+    w, h = signal.freqz(num, den)
+    plt.plot(((w * fe)/(2 * np.pi)), 20 * np.log10(abs(h)), color="blue")
+    plt.axvline(500, color='red') # cutoff frequency
+    plt.axhline(-0.2, color='red') # cutoff frequency
+    plt.axvline(750, color='green') # cutoff frequency
+    plt.axhline(-60, color='green') # cutoff frequency
+    plt.grid()
+    plt.xlim(0, 1000)
+    plt.ylim(-100, 10)
+    plt.title("Reponse en frequence du filtre elliptique du 4e ordre")
+    plt.show()
+
+    return signal.lfilter(num, den, image)
 
 
 def bilinear(image):
@@ -62,8 +81,15 @@ def bilinear(image):
     b = -2 * alpha ** 2 + 2
     c = alpha ** 2 - alpha * np.sqrt(2) + 1
 
-    num = [1, 2, 1]
-    den = [a, b, c]
+    num = np.array([1, 2, 1])
+    den = np.array([a, b, c])
+
+    # Displaying poles and zeros, as well as module of frequency response
+    zplane(num, den, title="Poles et zeros du filtre bilineaire")
+    w, h = signal.freqz(num, den)
+    plt.plot(((w * fe)/(2 * np.pi)), 20 * np.log10(abs(h)))
+    plt.title("Reponse en frequence du filtre bilineaire")
+    plt.show()
 
     image_filtree = signal.lfilter(num, den, image)
     return image_filtree
@@ -76,25 +102,51 @@ def compress(image, factor=0.5):
 
     Iv = transferMatrix.dot(image)
     size = len(Iv)
-    Iv = [Iv[n] if n < size * factor else np.zeros(size) for n in range(size)]
+    Iv = [Iv[n] if n < (size * factor) else np.zeros(size) for n in range(size)]
     Io = transferMatrixInv.dot(Iv)
 
     return Io
 
-def show(image):
-    plt.imshow(image)
-    plt.show()
-    return image
-
 def main():
     plt.gray()
-    image = show(np.load("image_complete.npy"))
-    image = show(aberrations(image))
-    image = show(rotation_base(image))
-    image = show(elliptic_filter(image))
-    image = show(compress(image))
+    rawImage = np.load("image_complete.npy")
+    plt.imshow(rawImage)
+    plt.title("Image originelle sans traitement des aberrations")
+    plt.show()
+
+    imageAberrations = aberrations(rawImage)
+    plt.imshow(imageAberrations)
+    plt.title("Image sans les aberrations")
+    plt.show()
+
+    plt.imshow(imageAberrations)
+    plt.title("Image avant la rotation")
+    plt.show()
+    imageRotated = rotation_base(imageAberrations)
+    plt.imshow(imageRotated)
+    plt.title("Image tournee de 90 degres")
+    plt.show()
+
+    imageBilinear = bilinear(imageRotated)
+    plt.imshow(imageBilinear)
+    plt.title("Image filtree avec filtre bilineaire")
+    plt.show()
+
+    imageElliptic = elliptic_filter(imageRotated)
+    plt.imshow(imageElliptic)
+    plt.title("Image filtree avec filtre Python elliptique du 4e ordre")
+    plt.show()
+
+    imageCompressed50 = compress(imageElliptic, 0.5)
+    plt.imshow(imageCompressed50)
+    plt.title("Image compressee en 50%")
+    plt.show()
+
+    imageCompressed70 = compress(imageElliptic, 0.7)
+    plt.imshow(imageCompressed70)
+    plt.title("Image compressee en 70%")
+    plt.show()
     
-    
 
 
 
@@ -131,7 +183,7 @@ def main():
 
 
 
-def zplane(b, a, filename=None):
+def zplane(b, a, filename=None, title=""):
     """Plot the complex z-plane given a transfer function.
     """
 
@@ -183,6 +235,9 @@ def zplane(b, a, filename=None):
     ticks = [-1, -.5, .5, 1];
     plt.xticks(ticks);
     plt.yticks(ticks)
+
+    # custom code
+    plt.title(title)
 
     if filename is None:
         plt.show()
