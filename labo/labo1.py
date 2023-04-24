@@ -129,7 +129,7 @@ bande_coupe = 3500
 
 # -----------------------------------------------------------------------------
 plt.gray()
-img_couleur = mpimg.imread('goldhill.png', 0)
+img_couleur = mpimg.imread('goldhill.png')
 
 plt.imshow(img_couleur)
 #plt.show()
